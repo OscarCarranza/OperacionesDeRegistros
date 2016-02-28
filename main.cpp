@@ -7,6 +7,7 @@
 
 using std::cout;
 using std::cin;
+using std::endl;
 using std::vector;
 using std::string;
 using std::flush;
@@ -16,8 +17,8 @@ struct Libro
 {
 	char name[20];
 	char author[20];
-	char isbn[5];
-	char id_editorial[5];
+	int isbn;
+	int id_editorial;
 };
 
 struct Editorial
@@ -32,9 +33,9 @@ class RecordFile{
 	public: 
 		RecordFile();
 		~RecordFile();
-		void writeRecord(char*);
-		char* readRecord(int);
-		char* merge(char*,char*,char*,char*);
+		void writeRecord(int, char[20], int, char[20]);
+		void readRecord(int);
+		void listRecords();
 };
 
 RecordFile::RecordFile(){
@@ -45,23 +46,50 @@ RecordFile::~RecordFile(){
 	fclose(file);
 }
 
-void RecordFile::writeRecord(char* data){
-	fwrite(data,50,1,file);
+void RecordFile::writeRecord(int isbn, char name[20], int id_editorial, char author[20]){
+	file = fopen("Libros.bin","ab");
+	fwrite(&isbn,4,1,file);
+	fwrite(name,20,1,file);
+	fwrite(&id_editorial,4,1,file);
+	fwrite(author,20,1,file);
+}
+
+void RecordFile::listRecords(){
+
+	fseek(file,0,SEEK_END);
+	int number_registers = ftell(file)/48;
+
+	file = fopen("Libros.bin","rb");
+	fseek(file,0,SEEK_SET);
+	char name[20];
+	char author[20];
+	int isbn;
+	int id_editorial;
+
+	int current = 0;
+	while(current < number_registers){
+			fread(&isbn,4,1,file);
+			fread(name,20,1,file);
+			fread(&id_editorial,4,1,file);
+			fread(author,20,1,file);
+			cout << "ISBN: " << isbn << ", Name: " << name << ", Author: " << author << ", ID Editorial: " << id_editorial << endl;
+			current++;
+	}
 }
 	
-char* RecordFile::readRecord(int rrn){
+void RecordFile::readRecord(int rrn){
+	file = fopen("Libros.bin","rb");
+	fseek(file,(rrn-1)*50,SEEK_SET);
+	char name[20];
+	char author[20];
+	int isbn;
+	int id_editorial;
 
-}
-
-char* RecordFile::merge(char* name, char* isbn, char* author, char* id){
-	char data[50];
-	strcpy(data,name);
-	strcat(data,",");
-	strcat(data,isbn);
-	strcat(data,",");
-	strcat(data,author);
-	strcat(data,",");
-	strcat(data,id);
+	fread(&isbn,4,1,file);
+	fread(name,20,1,file);
+	fread(&id_editorial,4,1,file);
+	fread(author,20,1,file);
+	cout << "ISBN: " << isbn << ", Name: " << name << ", Author: " << author << ", ID Editorial: " << id_editorial;
 }
 
 int main(int argc, char const *argv[]){
@@ -71,7 +99,7 @@ int main(int argc, char const *argv[]){
 
 	while(enter){
 		cout << "---- Book & Editorial Control ----\n\n";
-		cout << "    1. Add Book \n    2. Read Book \n    3. List books \n    4. Delete book \n    5. Update book \n    5.New Editorial\n    6. Remove Editorial\n    7. List Editorials \n    8. Access Editorial \n\n";
+		cout << "    1. Add Book \n    2. Read Book \n    3. List books \n    4. Delete book \n    5. Update book \n    6. New Editorial\n    7. Remove Editorial\n    8. List Editorials \n    9. Access Editorial \n\n";
 		cout << "Choose an option: ";
 		cin >> option;
 		Libro book;
@@ -87,29 +115,21 @@ int main(int argc, char const *argv[]){
 			cin >> book.author;
 			cout << "Editorial ID: ";
 			cin >> book.id_editorial;
-			char* data = rf.merge(book.name,book.isbn,book.author,book.id_editorial);
-			rf.writeRecord(data);
+			cout << book.name << "   " << book.isbn << "    " << book.author << "   " << book.id_editorial << endl;
+			rf.writeRecord(book.isbn, book.name, book.id_editorial, book.author);
 		}
 		
-		/*else if(option == 2){
+		else if(option == 2){
+			int rrn;
+			cout << "Insert RRN: ";
+			cin >> rrn;
+			rf.readRecord(rrn);
 
-			char name[20];
-			char author[20];
-			int isbn;
-			int id_editorial;
+		}
 
-			FILE* file = fopen("Libros.bin", "rb");
-			fseek(file,0,SEEK_SET);
-			while(!feof(file)){
-				fread(&isbn,4,1,file);
-				fread(name,20,1,file);
-				fread(&id_editorial,4,1,file);
-				fread(author,20,1,file);
-				cout << "Book name: " << name << "   Author: " << author << "   ISBN: " << isbn << "   Editorial ID: " << id_editorial << "\n";
-			}
-			fclose(file);
-
-		}*/
+		else if(option == 3){
+			rf.listRecords();
+		}
 
 		else if (option == 5){
 			Editorial ed;
