@@ -1,6 +1,8 @@
 exe:	record.o main.o
 	g++ record.o main.o -o exe
-record.o	record.h record.cpp
+header.o:	header.h header.cpp
+	g++ -c header.cpp	
+record.o:	record.h record.cpp
 	g++ -c record.cpp
-main.o	record.o main.cpp
+main.o:	record.o main.cpp
 	g++ -c main.cpp

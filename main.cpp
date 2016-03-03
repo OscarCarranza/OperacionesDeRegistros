@@ -31,16 +31,17 @@ struct Editorial
 
 int main(int argc, char const *argv[]){
 
-	int option = 0;
+	int option;
 	bool enter = true;
+	int option2;
+	RecordFile rf;
 
 	while(enter){
 
-		int option2;
 		cout << "\n---- Book & Editorial Control ----\n\n";
-		cout << "    1. Book Management \n    2. Editorial Management \n\nEnter option: ";
+		cout << "    1. Book Management \n    2. Editorial Management \n    3. Exit \n\nEnter option: ";
 		cin >> option2;
-		RecordFile rf;
+		
 
 		if(option2 == 1){
 			cout << "\n    1. Add Book \n    2. Read Book \n    3. List books \n    4. Delete book \n    5. Update book \n\n";
@@ -89,6 +90,7 @@ int main(int argc, char const *argv[]){
 
 		else if(option2 == 2){
 		   cout << "\n    1. New Editorial\n    2. Remove Editorial\n    3. List Editorials \n    4. Access Editorial \n\n";
+		   cout << "Enter option: ";
 		   cin >> option;
 
 		   if (option == 1){
@@ -100,6 +102,13 @@ int main(int argc, char const *argv[]){
 				cout << "Adress: ";
 				cin >> ed.adress;
 				rf.writeRecord(ed.id_editorial,ed.name,ed.adress);
+			}
+
+			if(option == 2){
+				int rrn;
+				cout << "Remove Editorial #: ";
+				cin >> rrn;
+				rf.deleteRecord(rrn,2);
 			}
 		
 			else if(option == 4){
@@ -116,20 +125,19 @@ int main(int argc, char const *argv[]){
 			else{
 				cout << "Invalid option";
 			}
+
 		} //editorials
+
+		else if(option2 == 3){
+			enter = false;
+		}
 
 		else{
 			cout << "Invalid option!";
 		}
 
-		int n ;
-		cout << "Back to menu? [1.YES/2.NO]: ";
-		cin >> n;
-		if(n == 2){
-			enter = false;
-		}
-		cout << "\n";
 	}
+
 
 	cout << "Your session has closed\n";
 
