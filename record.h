@@ -13,7 +13,7 @@ class RecordFile{
 		void readRecord(int,int); // int1 = rrn, int2 = type(editorial or book)
 		void listRecords(int); //editorial or book
 		void deleteRecord(int,int);
-		void updateAvailList(int, int);
+		void updateRecord(int,int);
 		bool fileEdsExists();
 		bool fileBooksExists();
 };

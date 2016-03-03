@@ -87,14 +87,45 @@ void RecordFile::writeRecord(int isbn, char name[20], int id_editorial, char aut
 
 	}
 	fflush(fileBooks);
-	cout << "Record Succesfully Added! :D" << endl;	
+	cout << "Book Succesfully Added! :D" << endl;	
 }
 
 void RecordFile::writeRecord(int id, char name[20], char adress[20]){
-	fileEds = fopen("Editoriales.bin", "ab");
-	fwrite(name, 20, 1, fileEds);
-	fwrite(&id, 4, 1, fileEds);
-	fwrite(adress,20,1,fileEds);	
+
+	fileEds = fopen("Editoriales.bin","rb");	
+	fseek(fileEds,0,SEEK_SET);
+	int avl;
+	fread(&avl,4,1,fileEds);
+
+	if(avl == -1){
+		fileBooks = fopen("Editoriales.bin","ab");		
+		fseek(fileBooks,0,SEEK_END);	
+		fwrite(name, 20, 1, fileEds);
+		fwrite(&id, 4, 1, fileEds);
+		fwrite(adress,20,1,fileEds);		}
+
+	else{
+		fileEds = fopen("Libros.bin","r+b");
+		int location = 54 + ((avl-1)*44);
+		int value_avl;
+		fseek(fileEds,location+1,SEEK_SET);
+
+		// Leo el elemento siguiente del availist
+		fread(&value_avl,4,1,fileEds); 
+		
+		//escribo el regsitro
+		fseek(fileEds,location,SEEK_SET); 
+		fwrite(name, 20, 1, fileEds);
+		fwrite(&id, 4, 1, fileEds);
+		fwrite(adress,20,1,fileEds);
+
+		//escribo nueva pos dicponible en el archivo
+		fseek(fileEds,0,SEEK_SET);
+		fwrite(&value_avl,4,1,fileEds);
+
+	}
+	fflush(fileEds);
+	cout << "Editorial Succesfully Added! :D" << endl;	
 }
 
 void RecordFile::listRecords(int type){
@@ -119,7 +150,7 @@ void RecordFile::listRecords(int type){
 			fread(author,20,1,fileBooks);
 			fread(&id_editorial,4,1,fileBooks);
 			if(name[0] != '*'){
-				cout << " " << isbn << " | " << name << " | " << author << " | ED " << id_editorial << endl;
+				cout << " " << isbn << " | " << name << " | " << author << " | ED" << id_editorial << endl;
 			}
 			current++;
 		}
@@ -164,7 +195,7 @@ void RecordFile::readRecord(int rrnORaccess, int type){
 		fread(&isbn,4,1,fileBooks);
 		fread(author,20,1,fileBooks);
 		fread(&id_editorial,4,1,fileBooks);
-		cout << "ISBN: " << isbn << ", Name: " << name << ", Author: " << author << ", ID Editorial: " << id_editorial;
+		cout << isbn << " | " << name << " | " << author << " | " << id_editorial << endl;
 	}
 
 	else{ // access editorial
@@ -188,7 +219,7 @@ void RecordFile::readRecord(int rrnORaccess, int type){
 			fread(&id_editorial,4,1,fileBooks);
 			
 			if(id_editorial == rrnORaccess){
-				cout << "ISBN: " << isbn << ", Name: " << name << ", Author: " << author << ", ID Editorial: " << id_editorial << endl;
+				cout  << isbn << " | " << name << " | " << author << " | " << id_editorial << endl;
 				found = true;
 			}
 			current++;
@@ -218,30 +249,31 @@ void RecordFile::deleteRecord(int rrn, int type){
 		fwrite(&rrn,4,1,fileBooks); 
 		fseek(fileBooks,location+1,SEEK_SET);
 		fwrite(&avl,4,1,fileBooks); 
+		cout << "Book Succesfully Removed! :D";
 		fflush(fileBooks);
-
 	}
 
 	else if(type == 2){
-		fileEds = fopen("Libros.bin","r+b");
+		int location = 54 + (rrn-1)*44;
+		fileEds= fopen("Editoriales.bin","r+b");
 		int number_registers = ftell(fileEds)/44;
-		fseek(fileBooks,(rrn-1)*44,SEEK_SET);
+		fseek(fileEds,location,SEEK_SET);
 		cout << ftell(fileEds);
 		char mark[1] = {'*'};
 		fwrite(mark,1,1,fileEds);
+
+		int avl;
+		fseek(fileEds,0,SEEK_SET);
+		fread(&avl,4,1,fileEds); //primer elemento availList 
+		fseek(fileEds,0,SEEK_SET); //ya estoy en el primer byte
+		fwrite(&rrn,4,1,fileEds); 
+		fseek(fileEds,location+1,SEEK_SET);
+		fwrite(&avl,4,1,fileBooks); 
+		fflush(fileEds);
+		cout << "Editorial Succesfully Removed! :D";
 	}
 	
 }
-
-void RecordFile::updateAvailList(int deletedRegister, int type){
-	if(type == 1){
-
-	}
-	else{
-
-	}
-}
-
 
 bool RecordFile::fileBooksExists(){
 	ifstream ifile("Libros.bin");
@@ -251,5 +283,120 @@ bool RecordFile::fileBooksExists(){
 bool RecordFile::fileEdsExists(){
 	ifstream ifile("Editoriales.bin");
 	return ifile;
+}
+
+void RecordFile::updateRecord(int rrn, int type){
+
+	bool modify = true;
+	int field;
+	int location;
+	if(type == 1){
+
+		location = 61 + (rrn-1)*48;
+		fileBooks = fopen("Libros.bin","r+b");
+
+		while(modify){
+			cout << "\n   Update: \n  1. Name \n  2. ISBN \n  3. Author  \n  4. ID Editorial  \nChoose field: ";
+			cin >> field;
+
+			if(field == 1){ //update name
+				fseek(fileBooks,location,SEEK_SET);
+				char newName[20];
+				cout << "New name: ";
+				cin >> newName;
+				fwrite(newName,20,1,fileBooks);
+			}
+
+			else if(field == 2){ //update ISBN (LLAVE PRIMARIA)
+				fseek(fileBooks,location+20,SEEK_SET);
+				int newISBN;
+				cout << "New ISBN: ";
+				cin >> newISBN;
+				fwrite(&newISBN,4,1,fileBooks);
+			}
+
+			else if(field == 3){ //update author
+				fseek(fileBooks,location+24,SEEK_SET);
+				char newAuthor[20];
+				cout << "New author: ";
+				cin >> newAuthor;
+				fwrite(newAuthor,20,1,fileBooks);
+			}
+
+			else if(field == 4){ //update editorial id
+				fseek(fileBooks,location+44,SEEK_SET);
+				int newED;
+				cout << "New ED:  ";
+				cin >> newED;
+				fwrite(&newED,4,1,fileBooks);
+			}
+			else{
+				cout << "Invalid option!";
+			}
+
+			int option;
+			cout << "Update another field? [1. YES/ 2. NO]: ";
+			cin >> option;
+
+			if(option == 2){
+				modify = false;
+				fflush(fileBooks);
+			}
+
+		}
+
+		cout << "Book Succesfully Updated ! :D";
+	}
+
+	else if(type == 2){
+
+		location = 54 + (rrn-1)*44;
+		fileEds = fopen("Editoriales.bin","r+b");
+
+		while(modify){
+			cout << "\n   Update: \n  1. Name \n  2. ID \n  3. Adress \nChoose field: ";
+			cin >> field;
+
+			if(field == 1){ //update name
+				fseek(fileEds,location,SEEK_SET);
+				char newName[20];
+				cout << "New name: ";
+				cin >> newName;
+				fwrite(newName,20,1,fileEds);
+			}
+
+			else if(field == 2){ //update ID (LLAVE PRIMARIA)
+				fseek(fileEds,location+20,SEEK_SET);
+				int newID;
+				cout << "New ID: ";
+				cin >> newID;
+				fwrite(&newID,4,1,fileEds);
+			}
+
+			else if(field == 3){ //update adress
+				fseek(fileEds,location+24,SEEK_SET);
+				char newAdress[20];
+				cout << "New adress: ";
+				cin >> newAdress;
+				fwrite(newAdress,20,1,fileEds);
+			}
+
+			else{
+				cout << "Invalid option!";
+			}
+
+			int option;
+			cout << "Update another field? [1. YES/ 2. NO]: ";
+			cin >> option;
+
+			if(option == 2){
+				modify = false;
+				fflush(fileEds);
+			}
+
+		}
+
+		cout << "Book Succesfully Updated ! :D";
+	}
 }
 

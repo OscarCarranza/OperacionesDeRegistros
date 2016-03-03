@@ -76,10 +76,21 @@ int main(int argc, char const *argv[]){
 			}
 
 			else if(option == 4){
-				int rrn;
+				int rrn, valid;
 				cout << "Remove Register #: ";
 				cin >> rrn;
-				rf.deleteRecord(rrn,1);
+				cout << "Are you sure? [1. YES/ 2. NO]: ";
+				cin >> valid;
+
+				if(valid == 1)
+					rf.deleteRecord(rrn,1);
+			}
+
+			else if(option == 5){
+				int rrn;
+				cout << "Update Register #: ";
+				cin >> rrn;
+				rf.updateRecord(rrn,1);
 			}
 
 			else{
@@ -89,7 +100,7 @@ int main(int argc, char const *argv[]){
 		} //book control
 
 		else if(option2 == 2){
-		   cout << "\n    1. New Editorial\n    2. Remove Editorial\n    3. List Editorials \n    4. Access Editorial \n\n";
+		   cout << "\n    1. New Editorial\n    2. Remove Editorial\n    3. List Editorials \n    4. Access Editorial \n    5. Update Editorial\n\n";
 		   cout << "Enter option: ";
 		   cin >> option;
 
@@ -122,6 +133,13 @@ int main(int argc, char const *argv[]){
 				rf.listRecords(2);
 			}
 
+			else if(option == 5){
+				int rrn;
+				cout << "Update Editorial #: ";
+				cin >> rrn;
+				rf.updateRecord(rrn,2);
+			}
+
 			else{
 				cout << "Invalid option";
 			}
@@ -137,7 +155,6 @@ int main(int argc, char const *argv[]){
 		}
 
 	}
-
 
 	cout << "Your session has closed\n";
 
