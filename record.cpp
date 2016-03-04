@@ -185,17 +185,37 @@ void RecordFile::readRecord(int rrnORaccess, int type){
 
 	if(type == 1){ // read book
 		fileBooks = fopen("Libros.bin","rb");
-		fseek(fileBooks,(rrnORaccess-1)*48,SEEK_SET);
+		int location = (rrnORaccess-1)*48 + 61;
+		fseek(fileBooks,location,SEEK_SET);
 		char name[20];
 		char author[20];
 		int isbn;
 		int id_editorial;
-
 		fread(name,20,1,fileBooks);
-		fread(&isbn,4,1,fileBooks);
-		fread(author,20,1,fileBooks);
-		fread(&id_editorial,4,1,fileBooks);
-		cout << isbn << " | " << name << " | " << author << " | " << id_editorial << endl;
+
+		if(name[0] != '*'){		
+
+			fread(&isbn,4,1,fileBooks);
+			fread(author,20,1,fileBooks);
+			fread(&id_editorial,4,1,fileBooks);
+			cout << isbn << " | " << name << " | " << author << " | " << id_editorial << endl;
+		}
+
+		else{
+
+			bool found = false;
+			while(found == false){
+				location += 48;
+				fseek(fileBooks,location,SEEK_SET); //me muevo al siguiente record
+				fread(name,20,1,fileBooks);
+				if(name[0] != '*')
+					found = true;
+			}
+			fread(&isbn,4,1,fileBooks);
+			fread(author,20,1,fileBooks);
+			fread(&id_editorial,4,1,fileBooks);
+			cout << isbn << " | " << name << " | " << author << " | " << id_editorial << endl;
+		}		
 	}
 
 	else{ // access editorial
