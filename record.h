@@ -29,6 +29,7 @@ class RecordFile{
 		bool dirtyBitBooks();
 		bool dirtyBitEds();
 		void printIndex(int);
+		int validNumber(int);
 
 };
 

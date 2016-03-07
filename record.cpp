@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <string.h>
+#include <limits>
 
 using std::cout;
 using std::cin;
@@ -386,7 +387,7 @@ void RecordFile::updateRecord(int rrn, int type){
 
 		while(modify){
 			cout << "\n   Update: \n  1. Name \n  2. ISBN \n  3. Author  \n  4. ID Editorial  \nChoose field: ";
-			cin >> field;
+			field = validNumber(4);
 
 			if(field == 1){ //update name
 				fseek(fileBooks,location,SEEK_SET);
@@ -425,7 +426,7 @@ void RecordFile::updateRecord(int rrn, int type){
 
 			int option;
 			cout << "Update another field? [1. YES/ 2. NO]: ";
-			cin >> option;
+			option = validNumber(3);
 
 			if(option == 2){
 				modify = false;
@@ -446,7 +447,7 @@ void RecordFile::updateRecord(int rrn, int type){
 
 		while(modify){
 			cout << "\n   Update: \n  1. Name \n  2. ID \n  3. Adress \nChoose field: ";
-			cin >> field;
+			field = validNumber(5);
 
 			if(field == 1){ //update name
 				fseek(fileEds,location,SEEK_SET);
@@ -478,7 +479,7 @@ void RecordFile::updateRecord(int rrn, int type){
 
 			int option;
 			cout << "Update another field? [1. YES/ 2. NO]: ";
-			cin >> option;
+			option = validNumber(3);
 
 			if(option == 2){
 				modify = false;
@@ -608,6 +609,63 @@ void RecordFile::printIndex(int type){
 			fread(&rrn,4,1,indexEds);
 			cout << " " << key << " | " << rrn << endl;
 		}
+	}
+}
+
+int RecordFile::validNumber(int type){
+	if(type == 1){ //4 digit isbn
+		int isbn;
+		while(!(cin >> isbn) || isbn/1000 < 1){
+			cout << "\nInvalid entry! Please enter a FOUR DIGIT NUMBER :)\nISBN[4]: ";
+			cin.clear();
+			cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');	
+		}
+		return isbn;
+	}
+	else if(type == 2){ // 4 digit ed
+		int id;
+		while(!(cin >> id) || id/1000 < 1){
+			cout << "\nInvalid entry! Please enter a FOUR DIGIT NUMBER :)\nEditorial ID[4]: ";
+			cin.clear();
+			cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');	
+		}
+		return id;
+	}
+	else if(type == 0){ //rrn
+		int rrn;
+		while(!(cin >> rrn)){
+			cout << "\nInvalid entry! Please enter NUMBER :)\nRegister #: ";
+			cin.clear();
+			cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');	
+		}
+		return rrn;
+	}
+	else if(type == 3){ //yes no answer
+		int answer;
+		while(!(cin >> answer) || answer < 1 || answer > 2){
+			cout << "\nInvalid entry! \nAre you sure? [1. YES/ 2. NO]:";
+			cin.clear();
+			cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');	
+		}
+		return answer;
+	}
+	else if(type == 4){ //1 to 4 options
+		int answer;
+		while(!(cin >> answer) || answer < 1 || answer > 4){
+			cout << "\nInvalid entry!\n   Update: \n  1. Name \n  2. ISBN \n  3. Author  \n  4. ID Editorial  \nChoose field: ";
+			cin.clear();
+			cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');	
+		}
+		return answer;
+	}
+	else if(type == 5){ //1 to 3 options
+		int answer;
+		while(!(cin >> answer) || answer < 1 || answer > 3){
+			cout << "\nInvalid entry! \n   Update: \n  1. Name \n  2. ID \n  3. Adress \nChoose field: ";
+			cin.clear();
+			cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');	
+		}
+		return answer;
 	}
 }
 

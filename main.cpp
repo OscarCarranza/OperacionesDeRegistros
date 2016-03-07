@@ -5,6 +5,7 @@
 #include <string>
 #include <stdlib.h>
 #include <string.h>
+#include <limits>
 
 using std::cout;
 using std::cin;
@@ -90,12 +91,12 @@ int main(int argc, char const *argv[]){
 				
 				cout << "Name of the book: ";
 				cin >> book.name;
-				cout << "ISBN: ";
-				cin >> book.isbn;
+				cout << "ISBN[4]: ";
+				book.isbn = rf.validNumber(1);
 				cout << "Author: ";
 				cin >> book.author;
-				cout << "Editorial ID: ";
-				cin >> book.id_editorial;
+				cout << "Editorial ID[4]: ";
+				book.id_editorial = rf.validNumber(2);
 
 				//check isbn on vector
 				bool exists = false;
@@ -121,7 +122,7 @@ int main(int argc, char const *argv[]){
 			else if(option == 2){
 				int rrn;
 				cout << "Insert RRN: ";
-				cin >> rrn;
+				rrn = rf.validNumber(0);
 				rf.readRecord(rrn,1);
 
 			}
@@ -133,9 +134,10 @@ int main(int argc, char const *argv[]){
 			else if(option == 4){
 				int rrn, valid;
 				cout << "Remove Register #: ";
-				cin >> rrn;
+				rrn = rf.validNumber(0);
+				
 				cout << "Are you sure? [1. YES/ 2. NO]: ";
-				cin >> valid;
+				valid = rf.validNumber(3);
 
 				if(valid == 1){
 					int id = rf.deleteRecord(rrn,1);
@@ -150,7 +152,7 @@ int main(int argc, char const *argv[]){
 			else if(option == 5){
 				int rrn;
 				cout << "Update Register #: ";
-				cin >> rrn;
+				rrn = rf.validNumber(0);
 				rf.updateRecord(rrn,1);
 			}
 
@@ -174,7 +176,7 @@ int main(int argc, char const *argv[]){
 				cout << "Name of Editorial: ";
 				cin >> ed.name;
 				cout << "Editorial ID: ";
-				cin >> ed.id_editorial;
+				ed.id_editorial = rf.validNumber(2);
 				cout << "Adress: ";
 				cin >> ed.adress;
 
@@ -202,9 +204,9 @@ int main(int argc, char const *argv[]){
 				int rrn;
 				int valid;
 				cout << "Remove Editorial #: ";
-				cin >> rrn;
+				rrn = rf.validNumber(0);
 				cout << "Are you sure? [1. YES/ 2. NO]: ";
-				cin >> valid;
+				valid = rf.validNumber(3);
 
 				if(valid == 1){
 					int id = rf.deleteRecord(rrn,2);
@@ -220,7 +222,7 @@ int main(int argc, char const *argv[]){
 			else if(option == 4){
 				int access;
 				cout << "Enter ID Editorial #: ";
-				cin >> access;
+				access = rf.validNumber(2);
 				rf.readRecord(access,2);
 			}
 
@@ -231,7 +233,7 @@ int main(int argc, char const *argv[]){
 			else if(option == 5){
 				int rrn;
 				cout << "Update Editorial #: ";
-				cin >> rrn;
+				rrn = rf.validNumber(0);
 				rf.updateRecord(rrn,2);
 			}
 
