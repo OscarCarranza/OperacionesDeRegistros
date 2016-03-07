@@ -29,11 +29,29 @@ RecordFile::RecordFile(){
 	
 	if(!EdsExist){
 		fileEds = fopen("Editoriales.bin", "ab");
-		char info[]= "char Name[20], int ID_editorial, char Adress[20]";
-		fwrite(&availList,1,1,fileEds);
+		char info[]= "char Name[20],int ID_editorial,char Adress[20]";
+		fwrite(&availList,4,1,fileEds);
 		fwrite(&dirtyBit,1,1,fileEds);
 		fwrite(info, sizeof(info),1,fileEds);
 		fflush(fileEds);
+	}
+
+	//indice
+	BooksExist = indexBooksExists();
+	EdsExist = indexEdsExists();
+
+	if(!BooksExist){
+		indexBooks = fopen("IndexLibros.bin", "ab");
+		char info[] = "int LLAVE,int RRN";
+		fwrite(info,17,1,indexBooks);
+		fflush(indexBooks);
+	}
+	
+	if(!EdsExist){
+		indexEds = fopen("IndexEditoriales.bin", "ab");
+		char info[] = "int LLAVE,int RRN";
+		fwrite(info,17,1,indexEds);
+		fflush(indexEds);
 	}
 	
 }
@@ -42,23 +60,47 @@ RecordFile::~RecordFile(){
 
 	bool BooksExist = fileBooksExists();
 	bool EdsExist = fileEdsExists();
+	bool indexBexists = indexBooksExists();
+	bool indexEexists = indexEdsExists();
+
+	bool dB = 0;
+	fileBooks = fopen("Libros.bin","r+b");
+	fileEds = fopen("Editoriales.bin","r+b");
+	fseek(fileBooks,5,SEEK_SET);
+	fseek(fileEds,5,SEEK_SET);
+	fwrite(&dB,1,1,fileBooks);
+	fwrite(&dB,1,1,fileEds);
 
 	if(!BooksExist)
 		fclose(fileBooks);
 	if(!EdsExist)
 		fclose(fileEds);
+	if(!indexBexists)
+		fclose(indexBooks);
+	if(!indexEexists)
+		fclose(indexEds);
 }
 
-void RecordFile::writeRecord(int isbn, char name[20], int id_editorial, char author[20]){
+int RecordFile::writeRecord(int isbn, char name[20], int id_editorial, char author[20]){
 
-	fileBooks = fopen("Libros.bin","rb");	
+	fileBooks = fopen("Libros.bin","r+b");	
 	fseek(fileBooks,0,SEEK_SET);
 	int avl;
+	bool dB = 1;
+	bool temp;
 	fread(&avl,4,1,fileBooks);
+	int rrn;
+
+	//marcamos dB
+	fseek(fileBooks,5,SEEK_SET);
+	fwrite(&dB,1,1,fileBooks);
+	fseek(fileBooks,5,SEEK_SET);
+	fread(&temp,1,1,fileBooks);
 
 	if(avl == -1){
 		fileBooks = fopen("Libros.bin","ab");		
 		fseek(fileBooks,0,SEEK_END);	
+		rrn = (ftell(fileBooks)-61)/48;
 		fwrite(name,20,1,fileBooks);
 		fwrite(&isbn,4,1,fileBooks);
 		fwrite(author,20,1,fileBooks);
@@ -66,7 +108,6 @@ void RecordFile::writeRecord(int isbn, char name[20], int id_editorial, char aut
 	}
 
 	else{
-		fileBooks = fopen("Libros.bin","r+b");
 		int location = 61 + ((avl-1)*48);
 		int value_avl;
 		fseek(fileBooks,location+1,SEEK_SET);
@@ -76,6 +117,7 @@ void RecordFile::writeRecord(int isbn, char name[20], int id_editorial, char aut
 		
 		//escribo el regsitro
 		fseek(fileBooks,location,SEEK_SET); 
+		rrn = (ftell(fileBooks)-61)/48;
 		fwrite(name,20,1,fileBooks); 
 		fwrite(&isbn,4,1,fileBooks);
 		fwrite(author,20,1,fileBooks);
@@ -88,25 +130,29 @@ void RecordFile::writeRecord(int isbn, char name[20], int id_editorial, char aut
 	}
 	fflush(fileBooks);
 	cout << "Book Succesfully Added! :D" << endl;	
+	return rrn;
 }
 
-void RecordFile::writeRecord(int id, char name[20], char adress[20]){
+int RecordFile::writeRecord(int id, char name[20], char adress[20]){
 
-	fileEds = fopen("Editoriales.bin","rb");	
+	fileEds = fopen("Editoriales.bin","r+b");	
 	fseek(fileEds,0,SEEK_SET);
 	int avl;
+	bool dB = 1;
 	fread(&avl,4,1,fileEds);
+	int rrn;
 
 	if(avl == -1){
-		fileBooks = fopen("Editoriales.bin","ab");		
-		fseek(fileBooks,0,SEEK_END);	
-		fwrite(name, 20, 1, fileEds);
-		fwrite(&id, 4, 1, fileEds);
-		fwrite(adress,20,1,fileEds);		}
+		fileEds = fopen("Editoriales.bin","ab");		
+		fseek(fileEds,0,SEEK_END);	
+		rrn = (ftell(fileBooks)-61)/48;
+		fwrite(name, 20,1, fileEds);
+		fwrite(&id, 4,1, fileEds);
+		fwrite(adress,20,1,fileEds);		
+	}
 
 	else{
-		fileEds = fopen("Libros.bin","r+b");
-		int location = 54 + ((avl-1)*44);
+		int location = 52 + ((avl-1)*44);
 		int value_avl;
 		fseek(fileEds,location+1,SEEK_SET);
 
@@ -115,8 +161,9 @@ void RecordFile::writeRecord(int id, char name[20], char adress[20]){
 		
 		//escribo el regsitro
 		fseek(fileEds,location,SEEK_SET); 
+		rrn = (ftell(fileBooks)-61)/48;
 		fwrite(name, 20, 1, fileEds);
-		fwrite(&id, 4, 1, fileEds);
+		fwrite(&id,4,1,fileEds);
 		fwrite(adress,20,1,fileEds);
 
 		//escribo nueva pos dicponible en el archivo
@@ -124,8 +171,12 @@ void RecordFile::writeRecord(int id, char name[20], char adress[20]){
 		fwrite(&value_avl,4,1,fileEds);
 
 	}
+	fileEds = fopen("Editoriales.bin","r+b");
+	fseek(fileEds,5,SEEK_SET);
+	fwrite(&dB,1,1,fileEds);
 	fflush(fileEds);
 	cout << "Editorial Succesfully Added! :D" << endl;	
+	return rrn;
 }
 
 void RecordFile::listRecords(int type){
@@ -160,9 +211,9 @@ void RecordFile::listRecords(int type){
 
 		fileEds = fopen("Editoriales.bin","rb");
 		fseek(fileEds,0,SEEK_END);
-		int number_registers = ftell(fileEds)/44;
+		int number_registers = (ftell(fileEds)-52)/44;
 		
-		fseek(fileEds,0,SEEK_SET);
+		fseek(fileEds,52,SEEK_SET);
 		char name[20];
 		char adress[20];
 		int id;
@@ -173,12 +224,12 @@ void RecordFile::listRecords(int type){
 			fread(&id, 4, 1, fileEds);
 			fread(adress,20,1,fileEds);
 			if(name[0] != '*'){
-				cout << "ID: " << id << ", Name: " << name << ", Adress: " << adress << endl;
+				cout << " " << id << " | " << name << " | " << adress << endl;
 			}	
 			current++;
 		}
 	}
-	
+	//dirtyBit = 1;
 }
 	
 void RecordFile::readRecord(int rrnORaccess, int type){
@@ -220,11 +271,11 @@ void RecordFile::readRecord(int rrnORaccess, int type){
 
 	else{ // access editorial
 
-		fseek(fileBooks,0,SEEK_END);
+		fseek(fileBooks,61,SEEK_END);
 		int number_registers = ftell(fileBooks)/48;
 
 		fileBooks = fopen("Libros.bin","rb");
-		fseek(fileBooks,0,SEEK_SET);
+		fseek(fileBooks,61,SEEK_SET);
 		char name[20];
 		char author[20];
 		int isbn;
@@ -246,14 +297,16 @@ void RecordFile::readRecord(int rrnORaccess, int type){
 		}
 
 		if(!found){
-			cout << "Sorry, there are no books in this editorial";
+			cout << "Sorry, there are no books in this editorial or this editorial doesn't esxist";
 		}
 	}	
 }
 
-void RecordFile::deleteRecord(int rrn, int type){
-
+int RecordFile::deleteRecord(int rrn, int type){
+	bool dB = 1;
+	int id;
 	if(type == 1){
+		
 		int location = 61 + (rrn-1)*48;
 		fileBooks = fopen("Libros.bin","r+b");
 		int number_registers = ftell(fileBooks)/48;
@@ -261,6 +314,9 @@ void RecordFile::deleteRecord(int rrn, int type){
 		cout << ftell(fileBooks);
 		char mark[1] = {'*'};
 		fwrite(mark,1,1,fileBooks);
+
+		fseek(fileBooks,location+20,SEEK_SET);
+		fread(&id,4,1,fileBooks);
 
 		int avl;
 		fseek(fileBooks,0,SEEK_SET);
@@ -270,17 +326,23 @@ void RecordFile::deleteRecord(int rrn, int type){
 		fseek(fileBooks,location+1,SEEK_SET);
 		fwrite(&avl,4,1,fileBooks); 
 		cout << "Book Succesfully Removed! :D";
+
+		fseek(fileBooks,5,SEEK_SET);
+		fwrite(&dB,1,1,fileBooks);
 		fflush(fileBooks);
 	}
 
 	else if(type == 2){
-		int location = 54 + (rrn-1)*44;
+		int location = 52 + (rrn-1)*44;
 		fileEds= fopen("Editoriales.bin","r+b");
 		int number_registers = ftell(fileEds)/44;
 		fseek(fileEds,location,SEEK_SET);
 		cout << ftell(fileEds);
 		char mark[1] = {'*'};
 		fwrite(mark,1,1,fileEds);
+
+		fseek(fileBooks,location+20,SEEK_SET);
+		fread(&id,4,1,fileBooks);
 
 		int avl;
 		fseek(fileEds,0,SEEK_SET);
@@ -289,9 +351,15 @@ void RecordFile::deleteRecord(int rrn, int type){
 		fwrite(&rrn,4,1,fileEds); 
 		fseek(fileEds,location+1,SEEK_SET);
 		fwrite(&avl,4,1,fileBooks); 
-		fflush(fileEds);
 		cout << "Editorial Succesfully Removed! :D";
+
+		fseek(fileEds,5,SEEK_SET);
+		fwrite(&dB,1,1,fileEds);
+		fflush(fileEds);
+
 	}
+
+	return id;
 	
 }
 
@@ -310,6 +378,7 @@ void RecordFile::updateRecord(int rrn, int type){
 	bool modify = true;
 	int field;
 	int location;
+	bool dB = 1;
 	if(type == 1){
 
 		location = 61 + (rrn-1)*48;
@@ -365,12 +434,14 @@ void RecordFile::updateRecord(int rrn, int type){
 
 		}
 
+		fseek(fileBooks,5,SEEK_SET);
+		fwrite(&dB,1,1,fileBooks);
 		cout << "Book Succesfully Updated ! :D";
 	}
 
 	else if(type == 2){
 
-		location = 54 + (rrn-1)*44;
+		location = 51 + (rrn-1)*44;
 		fileEds = fopen("Editoriales.bin","r+b");
 
 		while(modify){
@@ -416,7 +487,130 @@ void RecordFile::updateRecord(int rrn, int type){
 
 		}
 
-		cout << "Book Succesfully Updated ! :D";
+		fseek(fileEds,5,SEEK_SET);
+		fwrite(&dB,1,1,fileEds);
+		cout << "Editorial Succesfully Updated ! :D";
 	}
 }
+
+void RecordFile::crossList(){
+	fileBooks = fopen("Libros.bin","rb");
+	fileEds = fopen("Editoriales.bin","rb");
+
+	int locB = 61;
+	int locE = 52;
+	fseek(fileBooks,0,SEEK_END);
+	int num_books = (ftell(fileBooks)-61)/48;
+	fseek(fileEds,0,SEEK_END);
+	int num_eds = (ftell(fileEds)-52)/44;
+
+	//Eds
+	char ed[20];
+	int id_ed;
+	char adress[20];
+	fseek(fileEds,52,SEEK_SET);
+
+	//Books
+	char book[20];
+	int isbn;
+	char author[20];
+	int bID_ed;
+	fseek(fileBooks,61,SEEK_SET);
+
+	bool contains_books = false;
+	for(int  i = 0; i < num_eds; i++){
+		fread(ed,20,1,fileEds);
+		fread(&id_ed,4,1,fileEds);
+		fread(adress,20,1,fileEds);
+
+		if(ed[0] != '*'){
+			cout << " ED" << id_ed << " | " << ed << " | " << adress << endl;
+			for(int j = 0; j < num_books; j++){
+				fread(book,20,1,fileBooks);
+				fread(&isbn,4,1,fileBooks);
+				fread(author,20,1,fileBooks);
+				fread(&bID_ed,4,1,fileBooks);
+
+				if(book[0] != '*'){
+					if(id_ed == bID_ed){
+						cout << "\t" << isbn << " | " << book << " | " << author << endl; 
+						contains_books = true;
+					}
+				}
+			}
+			fseek(fileBooks,61,SEEK_SET);
+		}
+		if(contains_books == false)
+			cout << "NO BOOKS IN THIS EDITORIAL";
+	}
+
+}
+
+bool RecordFile::dirtyBitBooks(){
+	bool dB;
+	fileBooks = fopen("Libros.bin","rb");
+	fseek(fileBooks,5,SEEK_SET);
+	fread(&dB,1,1,fileBooks);
+	return dB;
+}
+
+bool RecordFile::dirtyBitEds(){
+	bool dB;
+	fileEds = fopen("Editoriales.bin","rb");
+	fseek(fileEds,5,SEEK_SET);
+	fread(&dB,1,1,fileEds);
+	return dB;
+}
+
+bool RecordFile::indexBooksExists(){
+	ifstream ifile("IndexLibros.bin");
+	return ifile;
+}
+
+bool RecordFile::indexEdsExists(){
+	ifstream ifile("IndexEditoriales.bin");
+	return ifile;
+}
+
+FILE* RecordFile::getIndexBooks(){
+	return indexBooks;
+}
+
+FILE* RecordFile::getIndexEds(){
+	return indexEds;
+}
+
+void RecordFile::printIndex(int type){
+
+	if(type == 1){
+		indexBooks = fopen("IndexLibros.bin","rb");
+		fseek(indexBooks,0,SEEK_END);
+		int num_books = (ftell(indexBooks)-17)/8;
+		fseek(indexBooks,17,SEEK_SET);
+		int key, rrn;
+
+		for(int i = 0; i < num_books; i++){
+			fread(&key,4,1,indexBooks);
+			fread(&rrn,4,1,indexBooks);
+			cout << " " << key << " | " << rrn << endl;
+		}
+	}
+
+	else{
+		indexEds = fopen("IndexEditoriales.bin","rb");
+		fseek(indexEds,0,SEEK_END);
+		int num_eds = (ftell(indexEds)-17)/8;
+		fseek(indexEds,17,SEEK_SET);
+		int key, rrn;
+
+		for(int i = 0; i < num_eds; i++){
+			fread(&key,4,1,indexEds);
+			fread(&rrn,4,1,indexEds);
+			cout << " " << key << " | " << rrn << endl;
+		}
+	}
+}
+
+
+
 
