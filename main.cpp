@@ -92,13 +92,13 @@ int main(int argc, char const *argv[]){
 
 		cout << "\n---- Book & Editorial Control ----\n\n";
 		cout << "    1. Book Management \n    2. Editorial Management \n    3. Crossed List Inventory \n    4. Exit \n\nEnter option: ";
-		cin >> option2;
+		option2 = rf.validNumber(6);
 		
 
 		if(option2 == 1){
 			cout << "\n    1. Add Book \n    2. Read Book \n    3. List books \n    4. Delete book \n    5. Update book\n    6. Print Index\n\n";
 			cout << "Choose an option: ";
-			cin >> option;
+			option = rf.validNumber(6);
 			Libro book;
 
 			if (option == 1){
@@ -265,8 +265,7 @@ int main(int argc, char const *argv[]){
 		else if(option2 == 2){
 		   cout << "\n    1. New Editorial\n    2. Remove Editorial\n    3. List Editorials \n    4. Access Editorial \n    5. Update Editorial\n    6. Print Index\n\n";
 		   cout << "Enter option: ";
-		   cin >> option;
-
+		   option = rf.validNumber(6);
 		   if (option == 1){
 				Editorial ed;
 				cout << "Name of Editorial: ";

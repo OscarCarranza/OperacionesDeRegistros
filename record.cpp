@@ -564,6 +564,15 @@ int RecordFile::validNumber(int type){
 		}
 		return rrn;
 	}
+	else if(type == 6){ //rrn
+		int rrn;
+		while(!(cin >> rrn)){
+			cout << "\nInvalid entry! Please enter NUMBER :)\nChoose an option: ";
+			cin.clear();
+			cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');	
+		}
+		return rrn;
+	}
 	else if(type == 3){ //yes no answer
 		int answer;
 		while(!(cin >> answer) || answer < 1 || answer > 2){
