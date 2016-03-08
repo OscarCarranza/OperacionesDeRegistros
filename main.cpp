@@ -134,10 +134,35 @@ int main(int argc, char const *argv[]){
 			}
 			
 			else if(option == 2){
-				int rrn;
-				cout << "Insert RRN: ";
-				rrn = rf.validNumber(0);
-				rf.readRecord(rrn,1);
+				int isbn;
+				cout << "Insert ISBN: ";
+				isbn = rf.validNumber(1);
+
+				int i = 0;
+				int left = 0;
+				int right = indexBooks.size()-1;
+				int mid;
+				bool found = false;
+
+				while (left <= right) {
+					i++;
+					mid = (int) ((left + right) / 2);
+					if (isbn == indexBooks[mid].key){ 
+						cout << "Book found!" << endl;
+						int locOfBook = indexBooks[mid].rrn;
+						rf.readRecord(locOfBook,1);
+						found = true;
+						break;
+					}	
+					else if (isbn > indexBooks[mid].key)
+						left = mid + 1;
+					else
+						right = mid - 1;
+				}
+
+				if(found == false){
+					cout << "Book not found :(" << endl;
+				}
 
 			}
 
@@ -146,17 +171,45 @@ int main(int argc, char const *argv[]){
 			}
 
 			else if(option == 4){
-				int rrn, valid;
-				cout << "Remove Register #: ";
-				rrn = rf.validNumber(0);
+				int isbn, valid;
+				cout << "Remove ISBN: ";
+				isbn = rf.validNumber(1);
 				
 				cout << "Are you sure? [1. YES/ 2. NO]: ";
 				valid = rf.validNumber(3);
 
 				if(valid == 1){
-					int id = rf.deleteRecord(rrn,1);
+
+					int i = 0;
+					int left = 0;
+					int right = indexBooks.size()-1;
+					int mid;
+					bool found = false;
+					int loc;
+
+					while (left <= right) {
+						i++;
+						mid = (int) ((left + right) / 2);
+						if (isbn == indexBooks[mid].key){ 
+							cout << "Book found!" << endl;
+							int locOfBook = indexBooks[mid].rrn;
+							loc = rf.deleteRecord(locOfBook,1);
+							found = true;
+							break;
+						}	
+						else if (isbn > indexBooks[mid].key)
+							left = mid + 1;
+						else
+							right = mid - 1;
+					}
+
+					if(found == false){
+						cout << "Book not found :(" << endl;
+					}
+
+					//erase from vector
 					for(int i = 0; i < indexBooks.size(); i++){
-						if(indexBooks[i].key == id){
+						if(indexBooks[i].key == loc){
 							indexBooks.erase(indexBooks.begin()+i);
 						}
 					}
@@ -164,10 +217,35 @@ int main(int argc, char const *argv[]){
 			}
 
 			else if(option == 5){
-				int rrn;
-				cout << "Update Register #: ";
-				rrn = rf.validNumber(0);
-				rf.updateRecord(rrn,1);
+				int isbn;
+				cout << "Update ISBN: ";
+				isbn = rf.validNumber(1);
+
+				int i = 0;
+				int left = 0;
+				int right = indexBooks.size()-1;
+				int mid;
+				bool found = false;
+
+				while (left <= right) {
+					i++;
+					mid = (int) ((left + right) / 2);
+					if (isbn == indexBooks[mid].key){ 
+						cout << "Book found!" << endl;
+						int locOfBook = indexBooks[mid].rrn;
+						rf.updateRecord(locOfBook,1);
+						found = true;
+						break;
+					}	
+					else if (isbn > indexBooks[mid].key)
+						left = mid + 1;
+					else
+						right = mid - 1;
+				}
+
+				if(found == false){
+					cout << "Book not found :(" << endl;
+				}
 			}
 
 			else if(option == 6){
@@ -219,17 +297,44 @@ int main(int argc, char const *argv[]){
 			}
 
 			else if(option == 2){
-				int rrn;
+				int id;
 				int valid;
-				cout << "Remove Editorial #: ";
-				rrn = rf.validNumber(0);
+				int loc;
+				cout << "Remove ID: ";
+				id = rf.validNumber(2);
 				cout << "Are you sure? [1. YES/ 2. NO]: ";
 				valid = rf.validNumber(3);
 
 				if(valid == 1){
-					int id = rf.deleteRecord(rrn,2);
+					int i = 0;
+					int left = 0;
+					int right = indexEds.size()-1;
+					int mid;
+					bool found = false;
+
+					while (left <= right) {
+						i++;
+						mid = (int) ((left + right) / 2);
+						if (id == indexEds[mid].key){ 
+							cout << "Editorial found!" << endl;
+							int locOfEd = indexEds[mid].rrn;
+							loc = rf.deleteRecord(locOfEd,2);
+							found = true;
+							break;
+						}	
+						else if (id > indexEds[mid].key)
+							left = mid + 1;
+						else
+							right = mid - 1;
+					}
+
+					if(found == false){
+						cout << "Editorial not found :(" << endl;
+					}
+
+					//erase from vector
 					for(int i = 0; i < indexEds.size(); i++){
-						if(indexEds[i].key == id){
+						if(indexEds[i].key == loc){
 							indexEds.erase(indexEds.begin()+i);
 						}
 					}
@@ -249,10 +354,35 @@ int main(int argc, char const *argv[]){
 			}
 
 			else if(option == 5){
-				int rrn;
-				cout << "Update Editorial #: ";
-				rrn = rf.validNumber(0);
-				rf.updateRecord(rrn,2);
+				int id;
+				cout << "Insert ID: ";
+				id = rf.validNumber(2);
+
+				int i = 0;
+				int left = 0;
+				int right = indexEds.size()-1;
+				int mid;
+				bool found = false;
+
+				while (left <= right) {
+					i++;
+					mid = (int) ((left + right) / 2);
+					if (id == indexEds[mid].key){ 
+						cout << "Editorial found!" << endl;
+						int locOfEd = indexEds[mid].rrn;
+						rf.updateRecord(locOfEd,2);
+						found = true;
+						break;
+					}	
+					else if (id > indexEds[mid].key)
+						left = mid + 1;
+					else
+						right = mid - 1;
+				}
+
+				if(found == false){
+					cout << "Editorial not found :(" << endl;
+				}
 			}
 
 			else if(option == 6){

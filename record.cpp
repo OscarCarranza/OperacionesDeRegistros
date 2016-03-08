@@ -212,7 +212,7 @@ void RecordFile::readRecord(int rrnORaccess, int type){
 
 	if(type == 1){ // read book
 		fileBooks = fopen("Libros.bin","rb");
-		int location = (rrnORaccess-1)*48 + 61;
+		int location = rrnORaccess*48 + 61;
 		fseek(fileBooks,location,SEEK_SET);
 		char name[20];
 		char author[20];
@@ -283,11 +283,10 @@ int RecordFile::deleteRecord(int rrn, int type){
 	int id;
 	if(type == 1){
 		
-		int location = 61 + (rrn-1)*48;
+		int location = 61 + rrn*48;
 		fileBooks = fopen("Libros.bin","r+b");
 		int number_registers = ftell(fileBooks)/48;
 		fseek(fileBooks,location,SEEK_SET);
-		cout << ftell(fileBooks);
 		char mark[1] = {'*'};
 		fwrite(mark,1,1,fileBooks);
 
@@ -309,11 +308,10 @@ int RecordFile::deleteRecord(int rrn, int type){
 	}
 
 	else if(type == 2){
-		int location = 52 + (rrn-1)*44;
+		int location = 52 + rrn*44;
 		fileEds= fopen("Editoriales.bin","r+b");
 		int number_registers = ftell(fileEds)/44;
 		fseek(fileEds,location,SEEK_SET);
-		cout << ftell(fileEds);
 		char mark[1] = {'*'};
 		fwrite(mark,1,1,fileEds);
 
@@ -357,7 +355,7 @@ void RecordFile::updateRecord(int rrn, int type){
 	bool dB = 1;
 	if(type == 1){
 
-		location = 61 + (rrn-1)*48;
+		location = 61 + rrn*48;
 		fileBooks = fopen("Libros.bin","r+b");
 
 		while(modify){
@@ -417,7 +415,7 @@ void RecordFile::updateRecord(int rrn, int type){
 
 	else if(type == 2){
 
-		location = 51 + (rrn-1)*44;
+		location = 51 + rrn*44;
 		fileEds = fopen("Editoriales.bin","r+b");
 
 		while(modify){
