@@ -36,24 +36,6 @@ RecordFile::RecordFile(){
 		fwrite(info, sizeof(info),1,fileEds);
 		fflush(fileEds);
 	}
-
-	//indice
-	BooksExist = indexBooksExists();
-	EdsExist = indexEdsExists();
-
-	if(!BooksExist){
-		indexBooks = fopen("IndexLibros.bin", "ab");
-		char info[] = "int LLAVE,int RRN";
-		fwrite(info,17,1,indexBooks);
-		fflush(indexBooks);
-	}
-	
-	if(!EdsExist){
-		indexEds = fopen("IndexEditoriales.bin", "ab");
-		char info[] = "int LLAVE,int RRN";
-		fwrite(info,17,1,indexEds);
-		fflush(indexEds);
-	}
 	
 }
 
@@ -61,8 +43,6 @@ RecordFile::~RecordFile(){
 
 	bool BooksExist = fileBooksExists();
 	bool EdsExist = fileEdsExists();
-	bool indexBexists = indexBooksExists();
-	bool indexEexists = indexEdsExists();
 
 	bool dB = 0;
 	fileBooks = fopen("Libros.bin","r+b");
@@ -76,10 +56,6 @@ RecordFile::~RecordFile(){
 		fclose(fileBooks);
 	if(!EdsExist)
 		fclose(fileEds);
-	if(!indexBexists)
-		fclose(indexBooks);
-	if(!indexEexists)
-		fclose(indexEds);
 }
 
 int RecordFile::writeRecord(int isbn, char name[20], int id_editorial, char author[20]){
@@ -88,15 +64,12 @@ int RecordFile::writeRecord(int isbn, char name[20], int id_editorial, char auth
 	fseek(fileBooks,0,SEEK_SET);
 	int avl;
 	bool dB = 1;
-	bool temp;
 	fread(&avl,4,1,fileBooks);
 	int rrn;
 
 	//marcamos dB
 	fseek(fileBooks,5,SEEK_SET);
 	fwrite(&dB,1,1,fileBooks);
-	fseek(fileBooks,5,SEEK_SET);
-	fread(&temp,1,1,fileBooks);
 
 	if(avl == -1){
 		fileBooks = fopen("Libros.bin","ab");		
@@ -141,7 +114,9 @@ int RecordFile::writeRecord(int id, char name[20], char adress[20]){
 	int avl;
 	bool dB = 1;
 	fread(&avl,4,1,fileEds);
-	int rrn;
+	int rrn;+
+	fseek(fileEds,5,SEEK_SET);
+	fwrite(&dB,1,1,fileEds);
 
 	if(avl == -1){
 		fileEds = fopen("Editoriales.bin","ab");		
@@ -563,59 +538,10 @@ bool RecordFile::dirtyBitEds(){
 	return dB;
 }
 
-bool RecordFile::indexBooksExists(){
-	ifstream ifile("IndexLibros.bin");
-	return ifile;
-}
-
-bool RecordFile::indexEdsExists(){
-	ifstream ifile("IndexEditoriales.bin");
-	return ifile;
-}
-
-FILE* RecordFile::getIndexBooks(){
-	return indexBooks;
-}
-
-FILE* RecordFile::getIndexEds(){
-	return indexEds;
-}
-
-void RecordFile::printIndex(int type){
-
-	if(type == 1){
-		indexBooks = fopen("IndexLibros.bin","rb");
-		fseek(indexBooks,0,SEEK_END);
-		int num_books = (ftell(indexBooks)-17)/8;
-		fseek(indexBooks,17,SEEK_SET);
-		int key, rrn;
-
-		for(int i = 0; i < num_books; i++){
-			fread(&key,4,1,indexBooks);
-			fread(&rrn,4,1,indexBooks);
-			cout << " " << key << " | " << rrn << endl;
-		}
-	}
-
-	else{
-		indexEds = fopen("IndexEditoriales.bin","rb");
-		fseek(indexEds,0,SEEK_END);
-		int num_eds = (ftell(indexEds)-17)/8;
-		fseek(indexEds,17,SEEK_SET);
-		int key, rrn;
-
-		for(int i = 0; i < num_eds; i++){
-			fread(&key,4,1,indexEds);
-			fread(&rrn,4,1,indexEds);
-			cout << " " << key << " | " << rrn << endl;
-		}
-	}
-}
-
 int RecordFile::validNumber(int type){
 	if(type == 1){ //4 digit isbn
 		int isbn;
-		while(!(cin >> isbn) || isbn/1000 < 1){
+		while(!(cin >> isbn) || isbn/1000 < 1 || isbn/1000 >= 10){
 			cout << "\nInvalid entry! Please enter a FOUR DIGIT NUMBER :)\nISBN[4]: ";
 			cin.clear();
 			cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');	
@@ -624,7 +550,7 @@ int RecordFile::validNumber(int type){
 	}
 	else if(type == 2){ // 4 digit ed
 		int id;
-		while(!(cin >> id) || id/1000 < 1){
+		while(!(cin >> id) || id/1000 < 1 || id/1000 >= 10){
 			cout << "\nInvalid entry! Please enter a FOUR DIGIT NUMBER :)\nEditorial ID[4]: ";
 			cin.clear();
 			cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');	

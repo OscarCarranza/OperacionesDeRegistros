@@ -46,31 +46,45 @@ int main(int argc, char const *argv[]){
 	vector <Ref> indexEds;
 
 	//llenar el vector con lo que tengo en el indice;
-	FILE* indiceLibros = rf.getIndexBooks();
-	FILE* indiceEds = rf.getIndexEds();
-	indiceLibros = fopen("IndexLibros.bin","rb");
-	indiceEds = fopen("IndexEditoriales.bin","rb");
+	FILE* indiceLibros = fopen("IndexLibros.bin","ab");
+	FILE* indiceEds = fopen("IndexEditoriales.bin","ab");
 
 	fseek(indiceLibros,0,SEEK_END);
-	int num_books = (ftell(indiceLibros)-17)/8;
-	cout << "num_books: " << num_books;
-	fseek(indiceEds,0,SEEK_END);
-	int num_eds = (ftell(indiceEds)-17)/8;
+	if(ftell(indiceLibros) == 0){
+		char info[] = "int LLAVE,int RRN";
+		fwrite(info,sizeof(info),1,indiceLibros);
+	}
 
-	fseek(indiceLibros,17,SEEK_SET);
-	int temp;
+	fseek(indiceEds,0,SEEK_END);
+	if(ftell(indiceEds) == 0){
+		char info[] = "int LLAVE,int RRN";
+		fwrite(info,sizeof(info),1,indiceEds);
+	}
+
+	fseek(indiceLibros,0,SEEK_END);
+	int num_books = (ftell(indiceLibros)-18)/8;
+	fseek(indiceEds,0,SEEK_END);
+	int num_eds = (ftell(indiceEds)-18)/8;
+	
+	indiceLibros = fopen("IndexLibros.bin","rb");
+	int x,y;
+	fseek(indiceLibros,18,SEEK_SET);
+
 	for(int i = 0; i < num_books; i++){
-		fread(&temp,4,1,indiceLibros);
-		indexKey.key = temp;
-		fread(&temp,4,1,indiceLibros);
-		indexKey.rrn = temp;
+		fread(&x,4,1,indiceLibros);
+		fread(&y,4,1,indiceLibros);
+		indexKey.key = x;
+		indexKey.rrn = y;
 		indexBooks.push_back(indexKey);
 	}
 
-	fseek(indiceEds,17,SEEK_SET);
+	indiceEds = fopen("IndexEditoriales.bin","rb");
+	fseek(indiceEds,18,SEEK_SET);
 	for(int i = 0; i < num_eds; i++){
-		fread(&indexKey.rrn,4,1,indiceLibros);
-		fread(&indexKey.key,4,1,indiceLibros);
+		fread(&x,4,1,indiceEds);
+		fread(&y,4,1,indiceEds);
+		indexKey.key = x;
+		indexKey.rrn = y;
 		indexEds.push_back(indexKey);
 	}
 	
@@ -103,7 +117,7 @@ int main(int argc, char const *argv[]){
 
 				for(int i = 0; i < indexBooks.size(); i++){
 					if(indexBooks[i].key == book.isbn){
-						cout << "SORRY :( ,this ISBN already exists" << endl;
+						cout << "SORRY :( this ISBN already exists" << endl;
 						exists = true;
 					}
 				}
@@ -157,7 +171,11 @@ int main(int argc, char const *argv[]){
 			}
 
 			else if(option == 6){
-				rf.printIndex(1);
+				cout << "PUEDE SER QUE EL INDICE ESTE SUCIO! \nEN ESTE CASO CIERRE EL PROGRAMA Y VUELVA A CORRERLO :D\n\n";
+				
+				for(int i = 0; i< indexBooks.size(); i++){
+					cout << indexBooks[i].key << " | " << indexBooks[i].rrn << endl;
+				}
 			}
 
 			else{
@@ -196,7 +214,7 @@ int main(int argc, char const *argv[]){
 					//Add to vector
 					indexKey.key = ed.id_editorial;
 					indexKey.rrn = loc;
-					indexBooks.push_back(indexKey);
+					indexEds.push_back(indexKey);
 				}
 			}
 
@@ -210,7 +228,7 @@ int main(int argc, char const *argv[]){
 
 				if(valid == 1){
 					int id = rf.deleteRecord(rrn,2);
-					for(int i = 0; i < indexBooks.size(); i++){
+					for(int i = 0; i < indexEds.size(); i++){
 						if(indexEds[i].key == id){
 							indexEds.erase(indexEds.begin()+i);
 						}
@@ -238,7 +256,11 @@ int main(int argc, char const *argv[]){
 			}
 
 			else if(option == 6){
-				rf.printIndex(2);
+				cout << "PUEDE SER QUE EL INDICE ESTE SUCIO! \nEN ESTE CASO CIERRE EL PROGRAMA Y VUELVA A CORRERLO :D\n\n";
+				
+				for(int i = 0; i< indexEds.size(); i++){
+					cout << indexEds[i].key << " | " << indexEds[i].rrn << endl;
+				}
 			}
 
 			else{
@@ -266,74 +288,65 @@ int main(int argc, char const *argv[]){
 	bool dB2 = rf.dirtyBitEds();
 
 	if(dB1 == 1){
-
 		//order vector
-		vector <Ref> orderedVector;
-		for(int i = 0; i < indexBooks.size(); i++){
-			int menor = indexBooks[i].key;
-			int pos = i;
+
+		for(int i = 0; i < indexBooks.size()-1; i++){
 			for(int j = 0; j < indexBooks.size()-1; j++){
-				if(menor > indexBooks[j+1].key){
-					pos = j+1;
+				if(indexBooks[j].key > indexBooks[j+1].key){
+					Ref temp = indexBooks[j];
+					indexBooks[j] = indexBooks[j+1];
+					indexBooks[j+1] = temp;
 				}
 			}
-			orderedVector.push_back(indexBooks[pos]);	
-			indexBooks.erase(indexBooks.begin()+pos);
-			if(i == indexBooks.size()-1)
-				orderedVector.push_back(indexBooks[0]);
 		}	
-				
+		
+
 		indiceLibros = fopen("IndexLibros.bin", "r+b");
-		fseek(indiceLibros,17,SEEK_SET);
-		cout << "vector size: " << orderedVector.size() << endl;
-		int temp;
-		for(int i = 0; i < orderedVector.size(); i++){
-			temp = orderedVector[i].key;
-			cout << temp << endl;
-			fwrite(&temp,4,1,indiceLibros);
-			temp = orderedVector[i].rrn;
-			cout << temp << endl;
-			fwrite(&temp,4,1,indiceLibros);
+		fseek(indiceLibros,18,SEEK_SET);
+		int rrn,key;
+
+		int curr = 0;
+		while(curr < indexBooks.size()){
+			key = indexBooks[curr].key;
+			fwrite(&key,4,1,indiceLibros);
+			rrn = indexBooks[curr].rrn;
+			fwrite(&rrn,4,1,indiceLibros);
+			curr++;
 		}
-		fflush(indiceLibros);
 	}
 
-	if(dB1 == 2){
-
+	if(dB2 == 1){
 		//order vector
-		vector <Ref> orderedVector;
-		for(int i = 0; i < indexEds.size(); i++){
-			int menor = indexEds[i].key;
-			int pos = i;
+
+		for(int i = 0; i < indexEds.size()-1; i++){
 			for(int j = 0; j < indexEds.size()-1; j++){
-				if(menor > indexEds[j+1].key){
-					pos = j+1;
+				if(indexEds[j].key > indexEds[j+1].key){
+					Ref temp = indexEds[j];
+					indexEds[j] = indexEds[j+1];
+					indexEds[j+1] = temp;
 				}
 			}
-			orderedVector.push_back(indexEds[pos]);	
-			indexBooks.erase(indexEds.begin()+pos);
-			if(i == indexEds.size()-1)
-				orderedVector.push_back(indexEds[0]);
 		}	
-				
+		
+
 		indiceEds = fopen("IndexEditoriales.bin", "r+b");
-		fseek(indiceEds,17,SEEK_SET);
-		cout << "vector size: " << orderedVector.size() << endl;
-		int temp;
-		for(int i = 0; i < orderedVector.size(); i++){
-			temp = orderedVector[i].key;
-			cout << temp << endl;
-			fwrite(&temp,4,1,indiceLibros);
-			temp = orderedVector[i].rrn;
-			cout << temp << endl;
-			fwrite(&temp,4,1,indiceLibros);
+		fseek(indiceEds,18,SEEK_SET);
+		int rrn,key;
+
+		int curr = 0;
+		while(curr < indexEds.size()){
+			key = indexEds[curr].key;
+			fwrite(&key,4,1,indiceEds);
+			rrn = indexEds[curr].rrn;
+			fwrite(&rrn,4,1,indiceEds);
+			curr++;
 		}
-		fflush(indiceEds);
 	}
 
-
-
+	fflush(indiceLibros);
+	fclose(indiceLibros);
+	fflush(indiceEds);
+	fclose(indiceEds);
 	cout << "Your session has closed\n";
-
 	return 0;
 }

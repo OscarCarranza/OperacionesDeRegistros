@@ -5,8 +5,6 @@
 class RecordFile{
 		FILE* fileBooks;
 		FILE* fileEds;
-		FILE* indexBooks;
-		FILE* indexEds;
 	public: 
 		//Records
 		RecordFile();
@@ -20,15 +18,8 @@ class RecordFile{
 		bool fileEdsExists();
 		bool fileBooksExists();
 		void crossList();
-
-		//Indexes
-		bool indexEdsExists();
-		bool indexBooksExists();
-		FILE* getIndexBooks();
-		FILE* getIndexEds();
 		bool dirtyBitBooks();
 		bool dirtyBitEds();
-		void printIndex(int);
 		int validNumber(int);
 
 };
